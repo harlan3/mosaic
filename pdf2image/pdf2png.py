@@ -15,7 +15,10 @@ def gen_png(pdf_filename, pdf_info):
            fname = "images" + str(count).zfill(5) + ".png"
            image.save(os.path.join(img_folder, fname), "PNG")
            count = count + 1
-    
+
+if not os.path.exists(img_folder):
+    os.makedirs(img_folder)
+
 for pdf_filename in sorted(os.listdir(src_folder)):
 	
     print("Working on pdf: " + pdf_filename)
