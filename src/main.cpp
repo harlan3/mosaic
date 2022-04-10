@@ -36,9 +36,9 @@ bool fullScreen;
 
 void loadGLTextures() {
 
-	const char *bmpFile[6] = { "ref_images/grid512.bmp", "ref_images/face1.bmp",
+	const char *bmpFile[6] = { "ref_images/face1.bmp",
 			"ref_images/face2.bmp", "ref_images/face3.bmp", "ref_images/face4.bmp",
-			"ref_images/face5.bmp" };
+			"ref_images/face5.bmp", "ref_images/face6.bmp" };
 
 	for (int i = 0; i < 6; ++i) {
 
