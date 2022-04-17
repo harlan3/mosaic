@@ -23,6 +23,13 @@
 
 #include "BMP_File_Loader.h"
 
+#define SPACEBAR 32
+
+enum Model_Mode {
+	ORBIT_3D, PAN_2D
+};
+enum Model_Mode modelMode;
+
 void mouseCB(int button, int stat, int x, int y);
 void mouseMotionCB(int x, int y);
 
@@ -34,10 +41,15 @@ bool mouseRightDown;
 GLfloat mouseX, mouseY;
 bool fullScreen;
 
+GLfloat theta = M_PI / 2.0f - 0.4f;
+GLfloat phi = 0.0f;
+GLfloat dist = 10.0f;
+GLfloat oldX, oldY;
+
 void loadGLTextures() {
 
-	const char *bmpFile[6] = { "ref_images/face1.bmp",
-			"ref_images/face2.bmp", "ref_images/face3.bmp", "ref_images/face4.bmp",
+	const char *bmpFile[6] = { "ref_images/face1.bmp", "ref_images/face2.bmp",
+			"ref_images/face3.bmp", "ref_images/face4.bmp",
 			"ref_images/face5.bmp", "ref_images/face6.bmp" };
 
 	for (int i = 0; i < 6; ++i) {
@@ -79,6 +91,7 @@ double calcPanVelocity(double z) {
 
 int init() {
 
+	modelMode = ORBIT_3D;
 	glClearColor(0.0f, 0.0f, 0.0f, 0.5f);
 	glPolygonMode(GL_FRONT, GL_FILL);
 	glPolygonMode(GL_BACK, GL_LINE);
@@ -94,13 +107,26 @@ void display() {
 
 	glClear(GL_COLOR_BUFFER_BIT);
 	glLoadIdentity();
-	glTranslatef(0.0f, 0.0f, -5.0f);
-	glRotatef(xRot, 1.0f, 0.0f, 0.0f);
-	glRotatef(yRot, 0.0f, 1.0f, 0.0f);
-	glRotatef(zRot, 0.0f, 0.0f, 1.0f);
-	glTranslatef(xDist, 0.0f, 0.0f);
-	glTranslatef(0.0f, yDist, -0.0f);
-	glTranslatef(0.0f, 0.0f, -zDist);
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+
+	if (modelMode == PAN_2D) {
+
+		glTranslatef(0.0f, 0.0f, -5.0f);
+		glRotatef(xRot, 1.0f, 0.0f, 0.0f);
+		glRotatef(yRot, 0.0f, 1.0f, 0.0f);
+		glRotatef(zRot, 0.0f, 0.0f, 1.0f);
+		glTranslatef(xDist, 0.0f, 0.0f);
+		glTranslatef(0.0f, yDist, -0.0f);
+		glTranslatef(0.0f, 0.0f, -zDist);
+	} else if (modelMode == ORBIT_3D) {
+
+		float x = dist * sin(theta) * cos(phi);
+		float y = dist * cos(theta);
+		float z = dist * sin(theta) * sin(phi);
+		gluLookAt(x, y, z, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+	}
 
 	glBindTexture(GL_TEXTURE_2D, texture[0]);
 	glBegin(GL_QUADS);
@@ -208,6 +234,7 @@ void keyboard(unsigned char key, int x, int y) {
 		xDist = 0;
 		yDist = 0;
 		zDist = 0;
+		modelMode = PAN_2D;
 		glutPostRedisplay();
 		break;
 	case '2':
@@ -217,6 +244,7 @@ void keyboard(unsigned char key, int x, int y) {
 		xDist = 0;
 		yDist = 0;
 		zDist = 0;
+		modelMode = PAN_2D;
 		glutPostRedisplay();
 		break;
 	case '3':
@@ -226,6 +254,7 @@ void keyboard(unsigned char key, int x, int y) {
 		xDist = 0;
 		yDist = 0;
 		zDist = 0;
+		modelMode = PAN_2D;
 		glutPostRedisplay();
 		break;
 	case '4':
@@ -235,6 +264,7 @@ void keyboard(unsigned char key, int x, int y) {
 		xDist = 0;
 		yDist = 0;
 		zDist = 0;
+		modelMode = PAN_2D;
 		glutPostRedisplay();
 		break;
 	case '5':
@@ -244,6 +274,7 @@ void keyboard(unsigned char key, int x, int y) {
 		xDist = 0;
 		yDist = 0;
 		zDist = 0;
+		modelMode = PAN_2D;
 		glutPostRedisplay();
 		break;
 	case '6':
@@ -253,6 +284,7 @@ void keyboard(unsigned char key, int x, int y) {
 		xDist = 0;
 		yDist = 0;
 		zDist = 0;
+		modelMode = PAN_2D;
 		glutPostRedisplay();
 		break;
 	case 'f':
@@ -265,30 +297,6 @@ void keyboard(unsigned char key, int x, int y) {
 			fullScreen = false;
 		}
 		break;
-	case 'X':
-		xRot -= 1.0f;
-		glutPostRedisplay();
-		break;
-	case 'Y':
-		yRot -= 1.0f;
-		glutPostRedisplay();
-		break;
-	case 'Z':
-		zRot -= 1.0f;
-		glutPostRedisplay();
-		break;
-	case 'x':
-		xRot += 1.0f;
-		glutPostRedisplay();
-		break;
-	case 'y':
-		yRot += 1.0f;
-		glutPostRedisplay();
-		break;
-	case 'z':
-		zRot += 1.0f;
-		glutPostRedisplay();
-		break;
 	case 'p':
 		cout << endl;
 		cout << "xRot = " << xRot << endl;
@@ -297,6 +305,9 @@ void keyboard(unsigned char key, int x, int y) {
 		cout << "xDist = " << xDist << endl;
 		cout << "yDist = " << yDist << endl;
 		cout << "zDist = " << zDist << endl;
+		break;
+	case SPACEBAR:
+		modelMode = ORBIT_3D;
 		break;
 	case 'q':
 		exit(0);
@@ -320,14 +331,14 @@ void mouseCB(int button, int state, int x, int y) {
 			mouseRightDown = true;
 		} else if (state == GLUT_UP)
 			mouseRightDown = false;
-	} else if (button == 3) { // Scroll wheel up
+	} else if ((button == 3) && (modelMode == PAN_2D)) { // Scroll wheel up
 		if (state == GLUT_UP) {
 			mouseRightDown = false;
 			return;
 		}
 		mouseRightDown = true;
 		mouseMotionCB(x, y - 200);
-	} else if (button == 4) { // Scroll wheel down
+	} else if ((button == 4) && (modelMode == PAN_2D)) { // Scroll wheel down
 		if (state == GLUT_UP) {
 			mouseRightDown = false;
 			return;
@@ -341,74 +352,93 @@ void mouseCB(int button, int state, int x, int y) {
 
 void mouseMotionCB(int x, int y) {
 
-	if (mouseLeftDown) {
-		// face 1
-		if ((abs(xRot - 0) < 5.0) && (abs(yRot - 0) < 5.0)
-				&& (abs(zRot - 0) < 5.0)) {
-			xDist += (x - mouseX) * calcPanVelocity(zDist);
-			yDist -= (y - mouseY) * calcPanVelocity(zDist);
-		} // face 2
-		else if ((abs(xRot - 0) < 5.0) && (abs(yRot - 180) < 5.0)
-				&& (abs(zRot - 0) < 5.0)) {
-			xDist -= (x - mouseX) * calcPanVelocity(-zDist);
-			yDist -= (y - mouseY) * calcPanVelocity(-zDist);
-		} // face 3
-		else if ((abs(xRot - 90) < 5.0) && (abs(yRot - 0) < 5.0)
-				&& (abs(zRot - 0) < 5.0)) {
-			xDist += (x - mouseX) * calcPanVelocity(-yDist);
-			zDist -= (y - mouseY) * calcPanVelocity(-yDist);
-		} // face 4
-		else if ((abs(xRot + 90) < 5.0) && (abs(yRot - 0) < 5.0)
-				&& (abs(zRot - 0) < 5.0)) {
-			xDist += (x - mouseX) * calcPanVelocity(yDist);
-			zDist += (y - mouseY) * calcPanVelocity(yDist);
-		} // face 5
-		else if ((abs(xRot - 0) < 5.0) && (abs(yRot + 90) < 5.0)
-				&& (abs(zRot - 0) < 5.0)) {
-			zDist += (x - mouseX) * calcPanVelocity(-xDist);
-			yDist -= (y - mouseY) * calcPanVelocity(-xDist);
-		} // face 6
-		else if ((abs(xRot - 0) < 5.0) && (abs(yRot - 90) < 5.0)
-				&& (abs(zRot - 0) < 5.0)) {
-			zDist -= (x - mouseX) * calcPanVelocity(xDist);
-			yDist -= (y - mouseY) * calcPanVelocity(xDist);
+	if (modelMode == PAN_2D) {
+
+		if (mouseLeftDown) {
+			// face 1
+			if ((abs(xRot - 0) < 5.0) && (abs(yRot - 0) < 5.0)
+					&& (abs(zRot - 0) < 5.0)) {
+				xDist += (x - mouseX) * calcPanVelocity(zDist);
+				yDist -= (y - mouseY) * calcPanVelocity(zDist);
+			} // face 2
+			else if ((abs(xRot - 0) < 5.0) && (abs(yRot - 180) < 5.0)
+					&& (abs(zRot - 0) < 5.0)) {
+				xDist -= (x - mouseX) * calcPanVelocity(-zDist);
+				yDist -= (y - mouseY) * calcPanVelocity(-zDist);
+			} // face 3
+			else if ((abs(xRot - 90) < 5.0) && (abs(yRot - 0) < 5.0)
+					&& (abs(zRot - 0) < 5.0)) {
+				xDist += (x - mouseX) * calcPanVelocity(-yDist);
+				zDist -= (y - mouseY) * calcPanVelocity(-yDist);
+			} // face 4
+			else if ((abs(xRot + 90) < 5.0) && (abs(yRot - 0) < 5.0)
+					&& (abs(zRot - 0) < 5.0)) {
+				xDist += (x - mouseX) * calcPanVelocity(yDist);
+				zDist += (y - mouseY) * calcPanVelocity(yDist);
+			} // face 5
+			else if ((abs(xRot - 0) < 5.0) && (abs(yRot + 90) < 5.0)
+					&& (abs(zRot - 0) < 5.0)) {
+				zDist += (x - mouseX) * calcPanVelocity(-xDist);
+				yDist -= (y - mouseY) * calcPanVelocity(-xDist);
+			} // face 6
+			else if ((abs(xRot - 0) < 5.0) && (abs(yRot - 90) < 5.0)
+					&& (abs(zRot - 0) < 5.0)) {
+				zDist -= (x - mouseX) * calcPanVelocity(xDist);
+				yDist -= (y - mouseY) * calcPanVelocity(xDist);
+			}
+		}
+
+		if (mouseRightDown) {
+			// face 1
+			if ((abs(xRot - 0) < 5.0) && (abs(yRot - 0) < 5.0)
+					&& (abs(zRot - 0) < 5.0)) {
+				zDist += (y - mouseY) * 0.001;
+				mouseY = y;
+			} // face 2
+			else if ((abs(xRot - 0) < 5.0) && (abs(yRot - 180) < 5.0)
+					&& (abs(zRot - 0) < 5.0)) {
+				zDist -= (y - mouseY) * 0.001;
+				mouseY = y;
+			} // face 3
+			else if ((abs(xRot - 90) < 5.0) && (abs(yRot - 0) < 5.0)
+					&& (abs(zRot - 0) < 5.0)) {
+				yDist -= (y - mouseY) * 0.001;
+				mouseY = y;
+			} // face 4
+			else if ((abs(xRot + 90) < 5.0) && (abs(yRot - 0) < 5.0)
+					&& (abs(zRot - 0) < 5.0)) {
+				yDist += (y - mouseY) * 0.001;
+				mouseY = y;
+			} // face 5
+			else if ((abs(xRot - 0) < 5.0) && (abs(yRot + 90) < 5.0)
+					&& (abs(zRot - 0) < 5.0)) {
+				xDist -= (y - mouseY) * 0.001;
+				mouseY = y;
+			} // face 6
+			else if ((abs(xRot - 0) < 5.0) && (abs(yRot - 90) < 5.0)
+					&& (abs(zRot - 0) < 5.0)) {
+				xDist += (y - mouseY) * 0.001;
+				mouseY = y;
+			}
+		}
+	} else if (modelMode == ORBIT_3D) {
+
+		float deltaX = x - oldX;
+		float deltaY = y - oldY;
+
+		if (mouseLeftDown) {
+			theta -= 0.01f * deltaY;
+			phi += 0.01f * deltaX;
+		}
+		else if (mouseRightDown) {
+			dist += 0.1f * deltaY;
+		}
+
+		if (mouseLeftDown || mouseRightDown) {
+			oldX = (float)x;
+			oldY = (float)y;
 		}
 	}
-
-	if (mouseRightDown) {
-		// face 1
-		if ((abs(xRot - 0) < 5.0) && (abs(yRot - 0) < 5.0)
-				&& (abs(zRot - 0) < 5.0)) {
-			zDist += (y - mouseY) * 0.001;
-			mouseY = y;
-		} // face 2
-		else if ((abs(xRot - 0) < 5.0) && (abs(yRot - 180) < 5.0)
-				&& (abs(zRot - 0) < 5.0)) {
-			zDist -= (y - mouseY) * 0.001;
-			mouseY = y;
-		} // face 3
-		else if ((abs(xRot - 90) < 5.0) && (abs(yRot - 0) < 5.0)
-				&& (abs(zRot - 0) < 5.0)) {
-			yDist -= (y - mouseY) * 0.001;
-			mouseY = y;
-		} // face 4
-		else if ((abs(xRot + 90) < 5.0) && (abs(yRot - 0) < 5.0)
-				&& (abs(zRot - 0) < 5.0)) {
-			yDist += (y - mouseY) * 0.001;
-			mouseY = y;
-		} // face 5
-		else if ((abs(xRot - 0) < 5.0) && (abs(yRot + 90) < 5.0)
-				&& (abs(zRot - 0) < 5.0)) {
-			xDist -= (y - mouseY) * 0.001;
-			mouseY = y;
-		} // face 6
-		else if ((abs(xRot - 0) < 5.0) && (abs(yRot - 90) < 5.0)
-				&& (abs(zRot - 0) < 5.0)) {
-			xDist += (y - mouseY) * 0.001;
-			mouseY = y;
-		}
-	}
-
 	glutPostRedisplay();
 }
 
